@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Card, Table, Typography, Divider, Skeleton } from "antd";
 import supabase from "../utils/supabase";
 import { CrownFilled, TrophyFilled, FireFilled } from "@ant-design/icons";
+import Particles from "../components/particles-floating";
 
 const { Title, Text } = Typography;
 
@@ -26,10 +27,11 @@ function Ranking() {
   }, []);
 
   const podium = houses.slice(0, 3);
-  const others = houses.slice(3);
+  const others = houses;
 
   return (
     <div className=" w-full h-full bg-gradient-to-b from-blue-100 to-blue-200 p-8 flex flex-col items-center relative overflow-y-auto">
+      <Particles/>
       {/* ✨ Header refinado estilo Apple */}
       <motion.div
         initial={{ y: -40, opacity: 0 }}
@@ -56,7 +58,7 @@ function Ranking() {
           <Skeleton active paragraph={{ rows: 0 }} avatar />
         ) : (
           podium.map((house, index) => {
-            const heights = [160, 240, 130];
+            const heights = [180, 240, 130];
             const order = [1, 0, 2];
             const colors = [
               "border-silver/80 shadow-[0_0_25px_#a0c4ff]",
@@ -83,7 +85,7 @@ function Ranking() {
                   />
                 </div>
 
-                <span className="font-extrabold text-xl text-yellow-200 mb-2 tracking-wider">
+                <span className="!font-[Roboto] font-extrabold text-xl text-yellow-800 mb-2 tracking-wider">
                   {house.name}
                 </span>
 
@@ -97,14 +99,14 @@ function Ranking() {
                   }`}
                   style={{ height: `${heights[index]}px` }}
                 >
-                  <div className="absolute -top-6">
+                  <div className="absolute top-8">
                     {index === 1 ? (
-                      <CrownFilled className="text-yellow-400 text-4xl" />
+                      <CrownFilled className="text-yellow-600 text-4xl" />
                     ) : (
                       <TrophyFilled className="text-amber-400 text-3xl" />
                     )}
                   </div>
-                  {index === 1 ? "🥇" : index === 0 ? "🥈" : "🥉"}
+                  <p className="text-4xl mt-9">{index === 1 ? "🥇" : index === 0 ? "🥈" : "🥉"}</p>
                 </div>
               </motion.div>
             );
@@ -137,7 +139,7 @@ function Ranking() {
           <Table
             dataSource={others.map((h, i) => ({
               key: i,
-              rank: i + 4,
+              rank: i+1,
               name: h.name,
               points: h.points,
               photo: h.photoURL,

@@ -22,7 +22,7 @@ function Login() {
     }
 
     const id = data.user.id;
-    Cookies.set("user", id);
+    Cookies.set("user", id,{expires: 1/24});
 
     const { error: rowError } = await supabase.from("users").select().eq("id", id).single();
     if (rowError) {

@@ -1,6 +1,7 @@
 import { Button, Typography,Divider } from "antd";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import Particles from "../components/particles-floating";
 
 const { Title, Text } = Typography;
 
@@ -11,22 +12,8 @@ function NotFound() {
     <div className="relative w-full h-full bg-gradient-to-b from-blue-100 to-blue-200 overflow-hidden flex flex-col justify-center items-center text-center">
       
       {/* 🌫️ Niebla ligera animada */}
-      <div className="absolute inset-0 bg-gradient-to-b from-blue-50 to-transparent animate-pulse"></div>
-
-      {/* ✨ Partículas flotantes */}
-      <div className="absolute inset-0">
-        {[...Array(25)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-2 h-2 bg-blue-500 rounded-full animate-float"
-            style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              animationDuration: `${3 + Math.random() * 3}s`,
-            }}
-          />
-        ))}
-      </div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#bddbff_0%,_#93c5fd_60%,_#bddbff_100%)] animate-pulse duration-[6s]"></div>
+      <Particles/>
 
       {/* Contenedor principal */}
       <div className="relative z-10 bg-white/20 backdrop-blur-lg border-4 border-blue-500 rounded-xl p-10 flex flex-col items-center shadow-lg">
@@ -79,9 +66,9 @@ function NotFound() {
         `}
       </style>
       <Divider className="mt-16 border-blue-400/30" />
-        <Text className="!font-[Poppins] text-blue-800 italic text-sm relative z-10">
+        <Text className="!font-[Poppins] text-blue-800 italic text-sm relative z-10 ">
             ⚜️ "Solo los dignos forjarán su nombre en la historia..." ⚜️
-        </Text>
+      </Text>
     </div>
   );
 }

@@ -12,23 +12,30 @@ import {
   UserOutlined,
   LogoutOutlined,
   FireFilled,
+  MenuFoldOutlined,
+  MenuOutlined,
 } from "@ant-design/icons";
-import { Layout, Menu, Avatar, Dropdown } from "antd";
+import { Layout, Menu, Avatar, Dropdown,Drawer } from "antd";
 
 const { Header } = Layout;
 
 function AppHeader() {
   const [options, setOptions] = useState([
     { key: "1", label: "Ranking", icon: <TrophyFilled />,  onClick: () => navigate("/"), },
-    { key: "2", label: "Calificar", icon: <MoneyCollectFilled />, onClick: () => navigate("/weeks"), },
   ]);
 
   const [userExists, setUserExists] = useState(false);
+  const [drawer,setDrawer] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const id = Cookies.get("user");
-    setUserExists(!!id);
+    if(id){
+      const optionsNormal= { key: "2", label: "Calificar", icon: <MoneyCollectFilled />, onClick: () => navigate("/weeks"), };
+      setOptions((prev) => [...prev,optionsNormal])
+    }
+
+    setUserExists(id);
 
     const setAdmin = async () => {
       if (!id) return;
@@ -44,7 +51,7 @@ function AppHeader() {
 
       const optionsAdmin = {
         key: "3",
-        label: "Creación",
+        label: "Gestión",
         icon: <SettingFilled />,
         children: [
           { key: "1", label: "Casa", icon: <FireFilled /> ,  onClick: () => navigate("/houses"),},
@@ -121,14 +128,16 @@ function AppHeader() {
         <span className="font-bold text-white !font-[Poppins]">MATH HOUSES</span>
       </div>
 
-      {/* Menú principal */}
-      <Menu
-        mode="horizontal"
-        theme="dark"
-        selectedKeys={[]}
-        items={options}
-        className="flex-1 justify-center bg-transparent border-none text-gray-100 text-base !font-[Poppins] font-medium z-10"
-      />
+      <div className="hidden md:flex w-full ">
+        {/* Menú principal */}
+        <Menu
+          mode="horizontal"
+          theme="dark"
+          selectedKeys={[]}
+          items={options}
+          className="flex-1 justify-center bg-transparent border-none text-gray-100 text-base !font-[Poppins] font-medium z-10"
+        />
+      </div>
 
       {/* Avatar único */}
       <motion.div
@@ -144,6 +153,68 @@ function AppHeader() {
           />
         </Dropdown>
       </motion.div>
+
+      <div className="md:hidden flex ">
+        <MenuOutlined className="text-white text-2xl" onClick={() => setDrawer(true)}/>
+      </div>
+
+      {/* DRAWER MOVIL */}
+      <Drawer
+        placement="right"
+        open={drawer}
+        closable={false}
+        onClose={() => setDrawer(false)}
+        bodyStyle={{
+          padding: 0,
+          background: "linear-gradient(to bottom right, #0f1f3c, #001529)",
+          color: "white",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* Partículas en el Drawer */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {Array.from({ length: 15 }).map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-blue-400 rounded-full opacity-70 shadow-lg"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -20, 0],
+                opacity: [0.5, 1, 0.5],
+                scale: [1, 1.3, 1],
+              }}
+              transition={{
+                duration: 4 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
+         <div className="flex justify-between items-center px-6 py-4 bg-gradient-to-r from-[#0f1f3c] to-[#001529] border-b border-blue-500/20 relative z-10">
+          <div className="flex items-center text-white text-lg font-[Poppins] font-semibold">
+            <img src="/UT2.png" alt="Logo" className="w-7 h-7 mr-2" />
+            MATH HOUSES
+          </div>
+          <MenuOutlined
+            className="text-white text-xl cursor-pointer hover:scale-110 transition-transform"
+            onClick={() => setDrawer(false)}
+          />
+        </div>
+        {/* Menú dentro del Drawer */}
+        <Menu
+          mode="inline"
+          closable={false}
+          items={options}
+          onClick={() => setDrawer(false)}
+          className="border-none bg-transparent text-white !font-[Poppins] font-medium relative z-10"
+          theme="dark"
+        />
+      </Drawer>
     </Header>
   );
 }

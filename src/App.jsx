@@ -10,6 +10,7 @@ import {
 import Cookies from "js-cookie";
 import { Spin, Card, Typography, Button,Divider } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
+import Classes from "./pages/classes";
 import supabase from "./utils/supabase";
 import Register from "./pages/register";
 import Ranking from "./pages/ranking";
@@ -35,13 +36,12 @@ function ProtectedRoute({ requireAdmin = false }) {
       }
 
       if (requireAdmin) {
-        const { data } = await supabase
-          .from("users")
-          .select("*")
-          .eq("id", userId)
-          .eq("isAdmin", true)
-          .single();
-
+        const { data ,error} = await supabase
+        .from("users")
+        .select()
+        .eq("id", userId)
+        .eq("admin", true)
+        .single();
         setAuthorized(!!data);
       } else {
         setAuthorized(true);
@@ -78,7 +78,7 @@ function MainLayout() {
       </div>
 
       {/* Contenido dinámico */}
-      <div className="flex-1 mt-[64px] overflow-y-auto"> {/* margen igual a la altura del Header */}
+      <div className="flex-1 mt-[64px] overflow-y-auto">
         <Outlet />
       </div>
     </div>
@@ -122,7 +122,7 @@ function App() {
           <Route path='/weeks' element={<Weeks/>}/>
           {/* Ruta protegida (solo admins) */}
           <Route element={<ProtectedRoute requireAdmin={true} />}>
-            <Route path="/create" element={<Admin />} />
+            <Route path = "/classes" element={<Classes/>}/>
           </Route>
 
           {/* 404 */}
