@@ -29,7 +29,7 @@ function Classes() {
 
   const fetchSections = async() =>{
     setLoadingSection(true);
-    const {data} = await supabase.from('sections').select('id,classes(name),users(email),code').eq('active',true);
+    const {data} = await supabase.from('sections').select('id,classes(name),users(email),code,trimester').eq('active',true);
     setSections(data);
     setLoadingSection(false);
   }
@@ -78,6 +78,7 @@ function Classes() {
       render: (record) => record.users?.email || "—",
     },
     { title: "Sección", dataIndex: "code", key: "code" },
+    {title: "Trimestre", dataIndex: "trimester", key: "trimester"},
     {
       title: "Acción",
       key: "action",

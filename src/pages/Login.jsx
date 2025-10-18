@@ -176,18 +176,6 @@ function Login() {
               </Button>
             </Form.Item>
           </Form>
-
-          <Text className='!font-[Poppins]' style={{ color: "#ffffffff" }}>
-            ¿No tienes cuenta?{" "}
-            <Button
-              type="link"
-              className='!font-[Poppins]'
-              style={{ padding: 0, color: "#013385ff" }}
-              onClick={() => navigate("/register")}
-            >
-              Regístrate
-            </Button>
-          </Text>
         </Card>
       </motion.div>
     </div>

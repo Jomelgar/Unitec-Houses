@@ -3,6 +3,7 @@ import { Modal, Typography, Divider, Form, Input, Button, message, Select } from
 import supabase from "../utils/supabase";
 
 const { Title } = Typography;
+const trimester = ['Q1','Q2','Q3','Q4'];
 
 function AddSection({ open, close, onAdd,classes }) {
   const [form] = Form.useForm();
@@ -83,6 +84,19 @@ function AddSection({ open, close, onAdd,classes }) {
                 {item.email}
               </Select.Option>
             ))} 
+          </Select>
+        </Form.Item>
+        <Form.Item
+          name='trimester'
+          label='Trimestre'
+          rules={[{ required: true, message: "Por favor, ingresa el trimestre." }]}
+        >
+          <Select placeholder="Ej Q1, Q2, Q3...">
+            {trimester.map((i)=>(
+              <Select.Option key={i}>
+                {i}
+              </Select.Option>
+            ))}
           </Select>
         </Form.Item>
         <div className="flex justify-end gap-3 mt-4">

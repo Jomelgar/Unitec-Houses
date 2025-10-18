@@ -1,7 +1,13 @@
 import { useState } from "react";
-import { Card, Typography, Button, Input, Form } from "antd";
+import { Card, Typography, Button, Input, Form, message } from "antd";
 import supabase from "../utils/supabase";
-import { MailOutlined, LockOutlined, UserOutlined, EyeOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
+import {
+  MailOutlined,
+  LockOutlined,
+  UserOutlined,
+  EyeOutlined,
+  EyeInvisibleOutlined,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -14,32 +20,26 @@ function Register() {
   const onFinish = async (values) => {
     setLoading(true);
 
-    // Crear el usuario en Supabase Auth
-    const { data, error } = await supabase.auth.signUp({
-      email: values.email,
-      password: values.password,
-    });
-
-    if (error) {
-      console.error(error);
-      setLoading(false);
-      return;
-    }
-
-    // Si se creó correctamente, guardar en la tabla "users"
-    if (data.user) {
-      await supabase.from("users").insert([
+    try {
+      const { error } = await supabase.from("users").insert([
         {
-          id: data.user.id,
-          email: values.email,
           first_name: values.first_name,
           last_name: values.last_name,
+          email: values.email,
+          password: values.password, // ⚠️ en producción deberías encriptarla con bcrypt
         },
       ]);
-    }
 
-    setTimeout(() => setLoading(false), 1500);
-    navigate("/login");
+      if (error) throw error;
+
+      message.success("Usuario creado correctamente 🎉");
+      navigate("/login");
+    } catch (err) {
+      console.error(err);
+      message.error("Error al crear el usuario");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -112,7 +112,13 @@ function Register() {
             level={2}
             style={{ color: "white", marginBottom: 10, fontFamily: "Poppins" }}
           >
-            <img className="h-12 mb-4 cursor-pointer" alt="" src="/UT2.png" onClick={() => navigate("/")}/> Regístrate
+            <img
+              className="h-12 mb-4 cursor-pointer"
+              alt=""
+              src="/UT2.png"
+              onClick={() => navigate("/")}
+            />
+            Regístrate
           </Title>
           <Text style={{ color: "#ffffffff" }}>
             Únete a <b>Unitec Houses</b> y vive la magia 💫
@@ -224,7 +230,7 @@ function Register() {
                   fontWeight: 600,
                 }}
               >
-                Crear cuenta
+                Crear usuario
               </Button>
             </Form.Item>
           </Form>

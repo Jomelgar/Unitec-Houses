@@ -4,6 +4,7 @@ import { Card, Table, Typography, Divider, Skeleton } from "antd";
 import supabase from "../utils/supabase";
 import { CrownFilled, TrophyFilled, FireFilled } from "@ant-design/icons";
 import Particles from "../components/particles-floating";
+import GraphicRank from "../components/GraphicRank";
 
 const { Title, Text } = Typography;
 
@@ -26,7 +27,7 @@ function Ranking() {
     fetchHouses();
   }, []);
 
-  const podium = houses.slice(0, 3);
+  const podium = houses.slice(0, 5);
   const others = houses;
 
   return (
@@ -42,28 +43,30 @@ function Ranking() {
         <div className="inline-block bg-gradient-to-b from-blue/60 to-blue/10 backdrop-blur-sm px-10 py-6 rounded-2xl shadow-lg">
           <Title
             level={1}
-            className="!font-[SF Pro Display] !text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-800 via-blue-600 to-blue-400 tracking-tight drop-shadow-[0_0_20px_rgba(173,216,230,0.3)]"
+            className="!font-[SF Pro Display] !text-2xl md:!text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-800 via-blue-600 to-blue-400 tracking-tight drop-shadow-[0_0_20px_rgba(173,216,230,0.3)]"
           >
-            Blasones
+            MATH HOUSES
           </Title>
-          <Text className="block mt-3 text-blue-900/80 text-lg italic tracking-wide">
+          <Text className="block mt-3 text-blue-900/80 text-sm md:text-lg italic tracking-wide">
             Honor, Gloria y Fuego — donde cada casa forja su legado.
           </Text>
         </div>
       </motion.div>
 
-      {/* 🏰 Podio */}
-      <div className="flex justify-center items-end gap-8 mb-20 w-full max-w-4xl relative z-10">
+      {/* 🏰 Podio de 5 casas */}
+      <div className="flex justify-center items-end gap-6 mb-20 w-full max-w-screen relative z-10">
         {loading ? (
           <Skeleton active paragraph={{ rows: 0 }} avatar />
         ) : (
-          podium.map((house, index) => {
-            const heights = [180, 240, 130];
-            const order = [1, 0, 2];
+          podium.slice(0, 5).map((house, index) => {
+            const heights = [240, 200, 180, 160, 140]; // Alturas de cada barra
+            const order = [2, 0, 1, 3, 4]; // Ajusta el orden visual del podio
             const colors = [
-              "border-silver/80 shadow-[0_0_25px_#a0c4ff]",
-              "border-yellow-400 shadow-[0_0_25px_#ffd700]",
-              "border-amber-800 shadow-[0_0_25px_#8b7355]",
+              "border-yellow-400 shadow-[0_0_25px_#ffd700]", // 1er lugar
+              "border-gray-400 shadow-[0_0_25px_#e3e4e5]", // 2do lugar
+              "border-amber-800 shadow-[0_0_25px_#8b7355]", // 3er lugar
+              "border-blue-400 shadow-[0_0_15px_#a0c4ff]", // 4to lugar
+              "border-green-400 shadow-[0_0_15px_#7ed957]", // 5to lugar
             ];
 
             return (
@@ -73,40 +76,42 @@ function Ranking() {
                 style={{ order: order[index] }}
                 initial={{ y: 80, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3 * index, type: "spring" }}
+                transition={{ delay: 0.2 * index, type: "spring" }}
               >
                 <div
-                  className={`w-28 h-28 rounded-full border-4 mb-3 bg-[#0b1222] flex items-center justify-center ${colors[index]}`}
+                  className={`w-20 h-20 md:w-28 md:h-28 rounded-full border-4 mb-3 bg-[#0b1222] flex items-center justify-center ${colors[index]}`}
                 >
                   <img
-                    src={house.photoURL || "/castle.png"}
+                    src={house.photoURL}
                     alt={house.name}
-                    className="w-24 h-24 rounded-full object-cover border-2 border-[#00000088]"
+                    className="w-16 h-16 md:w-24 md:h-24 rounded-full object-cover border-2 border-[#00000088]"
                   />
                 </div>
 
-                <span className="!font-[Roboto] font-extrabold text-xl text-yellow-800 mb-2 tracking-wider">
+                <span className="!font-[Roboto] font-extrabold text-sm md:text-xl text-yellow-800 mb-2 tracking-wider">
                   {house.name}
                 </span>
 
                 <div
-                  className={`w-32 flex flex-col items-center justify-center font-bold text-lg rounded-t-lg relative overflow-hidden ${
-                    index === 1
+                  className={`w-12 md:w-32 flex flex-col items-center justify-end font-bold text-lg rounded-t-lg relative overflow-hidden ${
+                    index === 0
                       ? "bg-gradient-to-t from-yellow-500 to-yellow-300 text-black"
-                      : index === 0
+                      : index === 1
                       ? "bg-gradient-to-t from-gray-400 to-gray-200 text-black"
-                      : "bg-gradient-to-t from-amber-900 to-amber-600 text-yellow-100"
+                      : index === 2
+                      ? "bg-gradient-to-t from-amber-900 to-amber-600 text-yellow-100"
+                      : "bg-gradient-to-t from-blue-400/50 to-green-200/50 text-black"
                   }`}
                   style={{ height: `${heights[index]}px` }}
                 >
-                  <div className="absolute top-8">
-                    {index === 1 ? (
-                      <CrownFilled className="text-yellow-600 text-4xl" />
-                    ) : (
-                      <TrophyFilled className="text-amber-400 text-3xl" />
-                    )}
+                  <div className="absolute top-2">
+                    {index === 0 && <CrownFilled className="text-yellow-600 text-3xl mt-2" />}
+                    {index === 1 && <TrophyFilled className="text-gray-500 text-3xl mt-2" />}
+                    {index === 2 && <TrophyFilled className="text-amber-500 text-3xl mt-2" />}
                   </div>
-                  <p className="text-4xl mt-9">{index === 1 ? "🥇" : index === 0 ? "🥈" : "🥉"}</p>
+                  <p className="text-4xl mb-8">
+                    {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : ""}
+                  </p>
                 </div>
               </motion.div>
             );
@@ -114,6 +119,7 @@ function Ranking() {
         )}
       </div>
 
+      
       {/* 🛡️ Tabla de los demás */}
       <motion.div
         className="w-full max-w-4xl relative z-10"
@@ -123,12 +129,12 @@ function Ranking() {
       >
         <Card
           bordered={false}
-          className="bg-[#e6f0ff]/60 rounded-3xl border-4 border-blue-200 shadow-[0_0_40px_#9dc9ff60] backdrop-blur-lg"
+          className="w-full bg-white/60 rounded-3xl border-4 border-blue-200 shadow-[0_0_40px_#9dc9ff60] backdrop-blur-lg"
           title={
             <div className="flex items-center gap-3">
               <FireFilled className="text-blue-500 text-2xl" />
               <span className="!font-[Poppins] text-blue-800 text-xl font-semibold">
-                Tabla de Honor
+                Distribución de Casas
               </span>
             </div>
           }
@@ -136,63 +142,17 @@ function Ranking() {
             borderBottom: "1px solid rgba(173, 216, 230, 0.4)",
           }}
         >
-          <Table
-            dataSource={others.map((h, i) => ({
-              key: i,
-              rank: i+1,
-              name: h.name,
-              points: h.points,
-              photo: h.photoURL,
-            }))}
-            loading={loading}
-            pagination={false}
-            rowClassName="!font-[Poppins] hover:bg-[#d9ecff]/70 transition-all "
-            columns={[
-              {
-                title: "#",
-                dataIndex: "rank",
-                key: "rank",
-                render: (rank) => (
-                  <span className="!font-[Poppins] text-blue-700 font-bold">{rank}</span>
-                ),
-                onHeaderCell: () => ({
-                  style: { backgroundColor: "#008feeff", color: "#ffffff", fontWeight: "bold" },
-                }),
-              },
-              {
-                title: "Casa",
-                dataIndex: "name",
-                key: "name",
-                render: (text, record) => (
-                  <div className="!font-[Poppins] flex items-center gap-3">
-                    <span className="!font-[Poppins] text-blue-900 font-medium">{text}</span>
-                  </div>
-                ),
-                onHeaderCell: () => ({
-                  style: { backgroundColor: "#008feeff", color: "#ffffff", fontWeight: "bold" },
-                }),
-              },
-              {
-                title: "Puntos",
-                dataIndex: "points",
-                key: "points",
-                align: "right",
-                render: (points) => (
-                  <span className="!font-[Poppins] text-blue-700 font-semibold">
-                    {points ?? 0}
-                  </span>
-                ),
-                onHeaderCell: () => ({
-                  style: { backgroundColor: "#008feeff", color: "#ffffff", fontWeight: "bold" },
-                }),
-              },
-            ]}
+          <GraphicRank 
+            title={"Casas de Matemáticas"}
+            subtitle="Ranking de casas"
+            labels={houses.map((h)=> h?.name)}
+            datapoints={houses.map((h)=>h?.points)}
+            images={houses.map((h)=>h?.photoURL)}
           />
         </Card>
       </motion.div>
-
-      <Divider className="mt-16 border-blue-400/30" />
-      <Text className="!font-[Poppins] text-blue-800 italic text-sm relative z-10">
+      <Divider className="mt-16 border-blue-400 w-full" />
+      <Text className="!font-[Poppins] !text-center text-blue-800 italic text-sm relative z-10">
         ⚜️ "Solo los dignos forjarán su nombre en la historia..." ⚜️
       </Text>
     </div>

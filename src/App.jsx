@@ -10,7 +10,7 @@ import {
 import Cookies from "js-cookie";
 import { Spin, Card, Typography, Button,Divider } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
-import Classes from "./pages/classes";
+import Classes from "./pages/Classes";
 import supabase from "./utils/supabase";
 import Register from "./pages/register";
 import Ranking from "./pages/ranking";
@@ -18,11 +18,12 @@ import Header from "./components/header";
 import NotFound from "./pages/NotFound";
 import Weeks from "./pages/weeks";
 import Login from "./pages/login";
+import Houses from "./pages/houses";
 
 const { Title, Text } = Typography;
 
 // --- ProtectedRoute ---
-function ProtectedRoute({ requireAdmin = false }) {
+function ProtectedRoute({ isLog= false,requireAdmin = false }) {
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
 
@@ -34,7 +35,11 @@ function ProtectedRoute({ requireAdmin = false }) {
         setLoading(false);
         return;
       }
-
+      if(!isLog) {
+        setAuthorized(true);
+        setLoading(false);
+        return;
+      }; 
       if (requireAdmin) {
         const { data ,error} = await supabase
         .from("users")
@@ -85,28 +90,6 @@ function MainLayout() {
   );
 }
 
-function Admin() {
-  return (
-    <div className="flex justify-center items-center w-screen h-screen bg-gradient-to-b from-[#1a2a4a] to-[#001529] text-center">
-      <Card
-        className="shadow-lg"
-        style={{
-          width: 500,
-          backgroundColor: "rgba(255,255,255,0.1)",
-          border: "1px solid #2b3f66",
-        }}
-      >
-        <Title level={2} style={{ color: "white" }}>
-          🏰 Panel de Administración
-        </Title>
-        <Text style={{ color: "#b0c4de" }}>
-          Solo accesible para administradores
-        </Text>
-      </Card>
-    </div>
-  );
-}
-
 
 function App() {
   return (
@@ -114,15 +97,18 @@ function App() {
       <Routes>
         {/* Rutas públicas */}
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
 
         {/* Layout con Header */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<Ranking />} />
-          <Route path='/weeks' element={<Weeks/>}/>
+          <Route element={<ProtectedRoute isLog={false} requireAdmin={false}/>}>
+            <Route path='/weeks' element={<Weeks/>}/>
+          </Route>
           {/* Ruta protegida (solo admins) */}
-          <Route element={<ProtectedRoute requireAdmin={true} />}>
+          <Route element={<ProtectedRoute isLog={true} requireAdmin={true} />}>
             <Route path = "/classes" element={<Classes/>}/>
+            <Route path="/houses" element={<Houses/>} />
+            <Route path="/register" element={<Register />} />
           </Route>
 
           {/* 404 */}
