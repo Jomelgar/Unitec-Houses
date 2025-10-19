@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
-import { Card, Table, Button, Typography, Modal, Form, Input, message } from "antd";
-import Particles from "../components/particles-floating";
-import Cookies from "js-cookie";
-import supabase,{createUser} from "../utils/supabase";
+import {
+  Card,
+  Table,
+  Button,
+  Typography,
+  Modal,
+  Form,
+  Input,
+  message,
+} from "antd";
 import {
   MailOutlined,
   LockOutlined,
@@ -12,25 +18,39 @@ import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
+import Particles from "../components/particles-floating";
+import Cookies from "js-cookie";
+import supabase, { createUser } from "../utils/supabase";
 import DeleteUserModal from "../modals/DeleteUser";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 function Users() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
-  const [editModal, setEditModal] = useState(false);
-  const [selectedUserId,setSelectedUserId] = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState(null);
   const [form] = Form.useForm();
   const [creating, setCreating] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  // 🔹 Cargar usuarios desde Supabase
+  // 🔹 Detectar tamaño de pantalla
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // 🔹 Cargar usuarios
   const fetchUsers = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("users").select("*").neq("id", Cookies.get("user"));
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .neq("id", Cookies.get("user"));
     if (error) {
       message.error("Error al cargar usuarios");
       console.error(error);
@@ -44,12 +64,19 @@ function Users() {
     fetchUsers();
   }, []);
 
-  const handleEdit = async (userId,admin) => {
-    const {error} = await supabase.from("users").update({admin: !admin}).eq("id",userId);
-    if(!error) {
+  // 🔹 Cambiar permisos de admin
+  const handleEdit = async (userId, admin) => {
+    const { error } = await supabase
+      .from("users")
+      .update({ admin: !admin })
+      .eq("id", userId);
+    if (!error) {
+      message.success("Permisos actualizados");
       fetchUsers();
     }
-  }
+  };
+
+  // 🔹 Crear nuevo usuario
   const handleCreateUser = async (values) => {
     setCreating(true);
     try {
@@ -63,7 +90,7 @@ function Users() {
         },
       ]);
       if (error) throw error;
-      
+
       const url = window.location.origin + "/login";
       await fetch(import.meta.env.VITE_SEND_EMAIL, {
         method: "POST",
@@ -73,13 +100,14 @@ function Users() {
           last_name: values.last_name,
           email: values.email,
           password: values.password,
-          url: url
+          url,
         }),
       });
 
       form.resetFields();
       setModalVisible(false);
       fetchUsers();
+      message.success("Usuario creado con éxito");
     } catch (err) {
       console.error(err);
       message.error("Error al crear usuario");
@@ -88,73 +116,126 @@ function Users() {
     }
   };
 
-  // 🔹 Columnas de la tabla
+  // 🔹 Columnas para vista escritorio
   const columns = [
-    {
-      title: "Nombre",
-      dataIndex: "first_name",
-      key: "first_name",
-    },
-    {
-      title: "Apellido",
-      dataIndex: "last_name",
-      key: "last_name",
-    },
-    {
-      title: "Correo",
-      dataIndex: "email",
-      key: "email",
-    },
+    { title: "Nombre", dataIndex: "first_name", key: "first_name" },
+    { title: "Apellido", dataIndex: "last_name", key: "last_name" },
+    { title: "Correo", dataIndex: "email", key: "email" },
     {
       title: "Acciones",
       render: (record) => (
         <div className="gap-2 flex items-center">
           <Button
-            type="link" 
-            icon={<EditOutlined/>}
+            type="link"
+            icon={<EditOutlined />}
             className="bg-blue-500 !text-white hover:!text-blue-500 hover:scale-105"
-            onClick={()=>{ 
-              handleEdit(record.id, record.admin);
-            }}
+            onClick={() => handleEdit(record.id, record.admin)}
           >
-            {record.admin ? "Quitar permisos": "Dar permisos"}
+            {record.admin ? "Quitar permisos" : "Dar permisos"}
           </Button>
           <Button
-            type="link" 
+            type="link"
             onClick={() => {
-              const userId = record.id;
-              setSelectedUserId(userId); 
+              setSelectedUserId(record.id);
               setDeleteModal(true);
             }}
-            icon={<DeleteOutlined/>}
+            icon={<DeleteOutlined />}
             className="bg-red-500 !text-white hover:!text-red-500 hover:scale-105 hover:!border-red-400"
           >
             Eliminar
           </Button>
         </div>
-      )
-    }
+      ),
+    },
   ];
 
   return (
     <div className="w-full h-full bg-gradient-to-t from-blue-200 to-blue-100 py-8 flex flex-col items-center relative overflow-y-auto">
-      <Particles/>
+      <Particles />
+
       <Card
-        title={<Title level={3}>Usuarios</Title>}
         style={{ width: "90%", maxWidth: 900 }}
-        className="shadow-2xl"
-        extra={
-          <Button icon={<PlusOutlined/> } className="!font-[Poppins]" type="primary" onClick={() => setModalVisible(true)}>
-            Añadir usuario
-          </Button>
+        className="shadow-lg rounded-lg bg-white bg-opacity-80"
+        title={
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <Title
+              level={3}
+              className="!font-[Poppins] !text-xl sm:!text-2xl m-0 text-center sm:text-left"
+            >
+              Gestión de Usuarios
+            </Title>
+
+            {/* 🔹 Botones responsive */}
+            <div className="flex flex-wrap justify-center sm:justify-end gap-2">
+              <Button
+                icon={<PlusOutlined />}
+                type="primary"
+                className="!font-[Poppins] text-white bg-blue-500 hover:!bg-blue-400 hover:!text-white"
+                onClick={() => setModalVisible(true)}
+              >
+                Añadir Usuario
+              </Button>
+              <Button
+                icon={<ReloadOutlined />}
+                className="!font-[Poppins]"
+                onClick={fetchUsers}
+                loading={loading}
+              >
+                Actualizar
+              </Button>
+            </div>
+          </div>
         }
       >
-        <Table
-          columns={columns}
-          dataSource={users.map((u) => ({ ...u, key: u.id }))}
-          loading={loading}
-          pagination={{ pageSize: 5,position: ["bottomCenter"] }}
-        />
+        {/* Vista móvil: tarjetas */}
+        {isMobile ? (
+          <div className="flex flex-col gap-4">
+            {users.map((user) => (
+              <Card
+                key={user.id}
+                className="!rounded-xl shadow-md border border-gray-200"
+              >
+                <div className="flex flex-col gap-2">
+                  <Text>
+                    <b>Nombre:</b> {user.first_name} {user.last_name}
+                  </Text>
+                  <Text>
+                    <b>Correo:</b> {user.email}
+                  </Text>
+                  <div className="flex gap-2 mt-2">
+                    <Button
+                      type="primary"
+                      block
+                      onClick={() => handleEdit(user.id, user.admin)}
+                      icon={<EditOutlined />}
+                    >
+                      {user.admin ? "Quitar permisos" : "Dar permisos"}
+                    </Button>
+                    <Button
+                      danger
+                      block
+                      onClick={() => {
+                        setSelectedUserId(user.id);
+                        setDeleteModal(true);
+                      }}
+                      icon={<DeleteOutlined />}
+                    >
+                      Eliminar
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          // 💻 Vista escritorio: tabla
+          <Table
+            columns={columns}
+            dataSource={users.map((u) => ({ ...u, key: u.id }))}
+            loading={loading}
+            pagination={{ pageSize: 5, position: ["bottomCenter"] }}
+          />
+        )}
       </Card>
 
       {/* Modal de crear usuario */}
@@ -214,7 +295,13 @@ function Users() {
         </Form>
       </Modal>
 
-      <DeleteUserModal open={deleteModal} onClose={() => setDeleteModal(false)} userId={selectedUserId} refreshList={fetchUsers}/>
+      {/* Modal eliminar */}
+      <DeleteUserModal
+        open={deleteModal}
+        onClose={() => setDeleteModal(false)}
+        userId={selectedUserId}
+        refreshList={fetchUsers}
+      />
     </div>
   );
 }
