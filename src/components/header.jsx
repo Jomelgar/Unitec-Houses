@@ -55,10 +55,10 @@ function AppHeader() {
         label: "Gestión",
         icon: <SettingFilled />,
         children: [
-          { key: "3-4", label: "Calificaciones", icon: <FormOutlined />,  onClick: () => navigate("/califications"), },
-          { key: "3-3", label: "Usuarios", icon: <UserOutlined />,  onClick: () => navigate("/register"), },
-          { key: "3-1", label: "Casa", icon: <FireFilled /> ,  onClick: () => navigate("/houses"),},
-          { key: "3-2", label: "Clase", icon: <BookOutlined />,  onClick: () => navigate("/classes"), },
+          { key: "4", label: "Calificaciones", icon: <FormOutlined />,  onClick: () => navigate("/califications"), },
+          { key: "5", label: "Usuarios", icon: <UserOutlined />,  onClick: () => navigate("/register"), },
+          { key: "6", label: "Casa", icon: <FireFilled /> ,  onClick: () => navigate("/houses"),},
+          { key: "7", label: "Clase", icon: <BookOutlined />,  onClick: () => navigate("/classes"), },
         ],
       };
       setOptions((prev) => [...prev, optionsAdmin]);

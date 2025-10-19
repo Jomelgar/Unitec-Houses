@@ -1,255 +1,222 @@
-import { useState } from "react";
-import { Card, Typography, Button, Input, Form, message } from "antd";
-import supabase from "../utils/supabase";
+import { useState, useEffect } from "react";
+import { Card, Table, Button, Typography, Modal, Form, Input, message } from "antd";
+import Particles from "../components/particles-floating";
+import Cookies from "js-cookie";
+import supabase,{createUser} from "../utils/supabase";
 import {
   MailOutlined,
   LockOutlined,
   UserOutlined,
   EyeOutlined,
   EyeInvisibleOutlined,
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import DeleteUserModal from "../modals/DeleteUser";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
-function Register() {
-  const navigate = useNavigate();
+function Users() {
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [editModal, setEditModal] = useState(false);
+  const [selectedUserId,setSelectedUserId] = useState(null);
+  const [form] = Form.useForm();
+  const [creating, setCreating] = useState(false);
 
-  const onFinish = async (values) => {
+  // 🔹 Cargar usuarios desde Supabase
+  const fetchUsers = async () => {
     setLoading(true);
+    const { data, error } = await supabase.from("users").select("*").neq("id", Cookies.get("user"));
+    if (error) {
+      message.error("Error al cargar usuarios");
+      console.error(error);
+    } else {
+      setUsers(data);
+    }
+    setLoading(false);
+  };
 
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleEdit = async (userId,admin) => {
+    const {error} = await supabase.from("users").update({admin: !admin}).eq("id",userId);
+    if(!error) {
+      fetchUsers();
+    }
+  }
+  const handleCreateUser = async (values) => {
+    setCreating(true);
     try {
+      const user = await createUser(values.email, values.password);
       const { error } = await supabase.from("users").insert([
         {
+          id: user.data.user.id,
           first_name: values.first_name,
           last_name: values.last_name,
           email: values.email,
-          password: values.password, // ⚠️ en producción deberías encriptarla con bcrypt
         },
       ]);
-
       if (error) throw error;
+      
+      const url = window.location.origin + "/login";
+      await fetch(import.meta.env.VITE_SEND_EMAIL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: values.first_name,
+          last_name: values.last_name,
+          email: values.email,
+          password: values.password,
+          url: url
+        }),
+      });
 
-      message.success("Usuario creado correctamente 🎉");
-      navigate("/login");
+      form.resetFields();
+      setModalVisible(false);
+      fetchUsers();
     } catch (err) {
       console.error(err);
-      message.error("Error al crear el usuario");
+      message.error("Error al crear usuario");
     } finally {
-      setLoading(false);
+      setCreating(false);
     }
   };
 
-  return (
-    <div className="relative flex justify-center items-center w-screen h-screen overflow-hidden !font-[Poppins]">
-      <style>
-        {`
-          @keyframes float {
-            0% { transform: translateY(0px); opacity: 0.6; }
-            50% { transform: translateY(-40px); opacity: 1; }
-            100% { transform: translateY(0px); opacity: 0.6; }
-          }
-          .animate-float {
-            animation: float 4s ease-in-out infinite;
-          }
-        `}
-      </style>
-
-      {/* 🌫️ Fondo y niebla */}
-      <div className="absolute inset-0 bg-gradient-to-t from-blue-800 to-blue-500 animate-pulse"></div>
-
-      {/* ✨ Partículas flotantes */}
-      <div className="absolute inset-0">
-        {[...Array(25)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-3 h-3 bg-white rounded-full animate-float"
-            style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              animationDuration: `${3 + Math.random() * 3}s`,
+  // 🔹 Columnas de la tabla
+  const columns = [
+    {
+      title: "Nombre",
+      dataIndex: "first_name",
+      key: "first_name",
+    },
+    {
+      title: "Apellido",
+      dataIndex: "last_name",
+      key: "last_name",
+    },
+    {
+      title: "Correo",
+      dataIndex: "email",
+      key: "email",
+    },
+    {
+      title: "Acciones",
+      render: (record) => (
+        <div className="gap-2 flex items-center">
+          <Button
+            type="link" 
+            icon={<EditOutlined/>}
+            className="bg-blue-500 !text-white hover:!text-blue-500 hover:scale-105"
+            onClick={()=>{ 
+              handleEdit(record.id, record.admin);
             }}
-          />
-        ))}
-      </div>
+          >
+            {record.admin ? "Quitar permisos": "Dar permisos"}
+          </Button>
+          <Button
+            type="link" 
+            onClick={() => {
+              const userId = record.id;
+              setSelectedUserId(userId); 
+              setDeleteModal(true);
+            }}
+            icon={<DeleteOutlined/>}
+            className="bg-red-500 !text-white hover:!text-red-500 hover:scale-105 hover:!border-red-400"
+          >
+            Eliminar
+          </Button>
+        </div>
+      )
+    }
+  ];
 
-      {/* 🌫 Efecto niebla dinámica */}
-      <motion.div
-        className="absolute w-[200%] h-[200%] bg-gradient-radial from-white/10 via-transparent to-transparent blur-3xl"
-        animate={{
-          x: ["0%", "-30%", "0%"],
-          y: ["0%", "20%", "0%"],
-          opacity: [0.5, 0.8, 0.5],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
-
-      {/* 💎 Tarjeta de Registro */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="z-10"
+  return (
+    <div className="w-full h-full bg-gradient-to-t from-blue-200 to-blue-100 py-8 flex flex-col items-center relative overflow-y-auto">
+      <Particles/>
+      <Card
+        title={<Title level={3}>Usuarios</Title>}
+        style={{ width: "90%", maxWidth: 900 }}
+        className="shadow-2xl"
+        extra={
+          <Button icon={<PlusOutlined/> } className="!font-[Poppins]" type="primary" onClick={() => setModalVisible(true)}>
+            Añadir usuario
+          </Button>
+        }
       >
-        <Card
-          className="shadow-2xl backdrop-blur-lg"
-          style={{
-            width: 420,
-            backgroundColor: "rgba(255,255,255,0.3)",
-            border: "1px solid rgba(255,255,255,0.2)",
-            textAlign: "center",
-            borderRadius: 16,
-          }}
-        >
-          <Title
-            className="flex flex-col justify-center items-center"
-            level={2}
-            style={{ color: "white", marginBottom: 10, fontFamily: "Poppins" }}
+        <Table
+          columns={columns}
+          dataSource={users.map((u) => ({ ...u, key: u.id }))}
+          loading={loading}
+          pagination={{ pageSize: 5,position: ["bottomCenter"] }}
+        />
+      </Card>
+
+      {/* Modal de crear usuario */}
+      <Modal
+        title="Crear Usuario"
+        open={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        footer={null}
+      >
+        <Form form={form} layout="vertical" onFinish={handleCreateUser}>
+          <Form.Item
+            name="first_name"
+            label="Nombre"
+            rules={[{ required: true, message: "Ingresa el nombre" }]}
           >
-            <img
-              className="h-12 mb-4 cursor-pointer"
-              alt=""
-              src="/UT2.png"
-              onClick={() => navigate("/")}
+            <Input prefix={<UserOutlined />} placeholder="Nombre" />
+          </Form.Item>
+
+          <Form.Item
+            name="last_name"
+            label="Apellido"
+            rules={[{ required: true, message: "Ingresa el apellido" }]}
+          >
+            <Input prefix={<UserOutlined />} placeholder="Apellido" />
+          </Form.Item>
+
+          <Form.Item
+            name="email"
+            label="Correo"
+            rules={[
+              { required: true, message: "Ingresa el correo" },
+              { type: "email", message: "Correo inválido" },
+            ]}
+          >
+            <Input prefix={<MailOutlined />} placeholder="Correo" />
+          </Form.Item>
+
+          <Form.Item
+            name="password"
+            label="Contraseña"
+            rules={[{ required: true, message: "Ingresa la contraseña" }]}
+          >
+            <Input.Password
+              prefix={<LockOutlined />}
+              placeholder="Contraseña"
+              iconRender={(visible) =>
+                visible ? <EyeOutlined /> : <EyeInvisibleOutlined />
+              }
             />
-            Regístrate
-          </Title>
-          <Text style={{ color: "#ffffffff" }}>
-            Únete a <b>Unitec Houses</b> y vive la magia 💫
-          </Text>
+          </Form.Item>
 
-          <Form
-            name="register"
-            layout="vertical"
-            onFinish={onFinish}
-            className="mt-6"
-            requiredMark={false}
-          >
-            {/* Nombre */}
-            <Form.Item
-              name="first_name"
-              rules={[{ required: true, message: "Ingresa tu nombre" }]}
-            >
-              <Input
-                prefix={<UserOutlined className="text-white" />}
-                placeholder="Nombre"
-                size="large"
-                className="text-white !font-[Poppins]"
-                style={{
-                  borderRadius: 8,
-                  backgroundColor: "rgba(255,255,255,0.1)",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                }}
-              />
-            </Form.Item>
-
-            {/* Apellido */}
-            <Form.Item
-              name="last_name"
-              rules={[{ required: true, message: "Ingresa tu apellido" }]}
-            >
-              <Input
-                prefix={<UserOutlined className="text-white" />}
-                placeholder="Apellido"
-                size="large"
-                className="text-white !font-[Poppins]"
-                style={{
-                  borderRadius: 8,
-                  backgroundColor: "rgba(255,255,255,0.1)",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                }}
-              />
-            </Form.Item>
-
-            {/* Email */}
-            <Form.Item
-              name="email"
-              rules={[
-                { required: true, message: "Ingresa tu correo" },
-                { type: "email", message: "Correo inválido" },
-              ]}
-            >
-              <Input
-                prefix={<MailOutlined className="text-white" />}
-                placeholder="Correo electrónico"
-                size="large"
-                className="text-white !font-[Poppins]"
-                style={{
-                  borderRadius: 8,
-                  backgroundColor: "rgba(255,255,255,0.1)",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                }}
-              />
-            </Form.Item>
-
-            {/* Contraseña */}
-            <Form.Item
-              name="password"
-              rules={[{ required: true, message: "Ingresa tu contraseña" }]}
-            >
-              <Input.Password
-                prefix={<LockOutlined className="text-white" />}
-                placeholder="Contraseña"
-                size="large"
-                className="text-white !font-[Poppins]"
-                style={{
-                  borderRadius: 8,
-                  backgroundColor: "rgba(255,255,255,0.1)",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  color: "white",
-                }}
-                iconRender={(visible) =>
-                  visible ? (
-                    <EyeOutlined style={{ color: "white" }} />
-                  ) : (
-                    <EyeInvisibleOutlined style={{ color: "white" }} />
-                  )
-                }
-              />
-            </Form.Item>
-
-            {/* Botón */}
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                size="large"
-                className="!font-[Poppins] !text-gray-200 !border-gray-400"
-                block
-                ghost
-                loading={loading}
-                style={{
-                  borderRadius: 8,
-                  letterSpacing: 0.5,
-                  fontWeight: 600,
-                }}
-              >
-                Crear usuario
-              </Button>
-            </Form.Item>
-          </Form>
-
-          <Text className="!font-[Poppins]" style={{ color: "#ffffffff" }}>
-            ¿Ya tienes cuenta?{" "}
-            <Button
-              type="link"
-              className="!font-[Poppins]"
-              style={{ padding: 0, color: "#013385ff" }}
-              onClick={() => navigate("/login")}
-            >
-              Inicia sesión
+          <Form.Item>
+            <Button type="primary" htmlType="submit" block loading={creating}>
+              Crear usuario
             </Button>
-          </Text>
-        </Card>
-      </motion.div>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <DeleteUserModal open={deleteModal} onClose={() => setDeleteModal(false)} userId={selectedUserId} refreshList={fetchUsers}/>
     </div>
   );
 }
 
-export default Register;
+export default Users;

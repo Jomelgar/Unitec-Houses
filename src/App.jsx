@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import Weeks from "./pages/weeks";
 import Login from "./pages/login";
 import Houses from "./pages/houses";
+import Evaluation from "./pages/evaluation";
 
 const { Title, Text } = Typography;
 
@@ -109,6 +110,7 @@ function App() {
             <Route path = "/classes" element={<Classes/>}/>
             <Route path="/houses" element={<Houses/>} />
             <Route path="/register" element={<Register />} />
+            <Route path="/califications" element={<Evaluation />} /> 
           </Route>
 
           {/* 404 */}
