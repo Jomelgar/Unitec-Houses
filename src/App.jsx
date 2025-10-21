@@ -12,7 +12,7 @@ import { Spin, Card, Typography, Button,Divider } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import Classes from "./pages/classes";
 import supabase from "./utils/supabase";
-import Register from "./pages/register";
+import Register from "./pages/Register";
 import Ranking from "./pages/ranking";
 import Header from "./components/header";
 import NotFound from "./pages/NotFound";
