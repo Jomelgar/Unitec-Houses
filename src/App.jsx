@@ -10,7 +10,7 @@ import {
 import Cookies from "js-cookie";
 import { Spin, Card, Typography, Button,Divider } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
-import Classes from "./pages/Classes";
+import Classes from "./pages/classes";
 import supabase from "./utils/supabase";
 import Register from "./pages/register";
 import Ranking from "./pages/ranking";
