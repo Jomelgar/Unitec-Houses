@@ -11,10 +11,9 @@ function DeleteUserModal({ open, onClose, userId, refreshList }) {
     setLoading(true);
     const {error} = await supabase.from("users").delete().eq("id", userId);
     if(error) return;
-    const result = await deleteUser(userId);
     setLoading(false);
 
-    if (result) {
+    if (error) {
       message.success(`Usuario eliminado correctamente`);
       refreshList(); // si quieres refrescar la lista  de usuarios
       onClose();

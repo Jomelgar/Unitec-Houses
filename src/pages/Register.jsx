@@ -78,20 +78,39 @@ function Users() {
 
   // 🔹 Crear nuevo usuario
   const handleCreateUser = async (values) => {
-    setCreating(true);
-    try {
-      const user = await createUser(values.email, values.password);
-      const { error } = await supabase.from("users").insert([
+  setCreating(true);
+  try {
+    // 1️⃣ Crear usuario en Supabase Auth (o reutilizar existente)
+    const result = await createUser(values.email, values.password);
+    const userId = result.id;
+
+    // 2️⃣ Intentar insertar en la tabla "users" solo si no existe
+    const { data: existing, error: selectError } = await supabase
+      .from("users")
+      .select("id")
+      .eq("id", userId)
+      .single();
+
+    if (selectError && selectError.code !== "PGRST116") {
+      // PGRST116 = "No rows found" (normal si el usuario no existe)
+      throw selectError;
+    }
+
+    if (!existing) {
+      const { error: insertError } = await supabase.from("users").insert([
         {
-          id: user.data.user.id,
+          id: userId,
           first_name: values.first_name,
           last_name: values.last_name,
           email: values.email,
         },
       ]);
-      if (error) throw error;
+      if (insertError) throw insertError;
+    }
 
-      const url = window.location.origin + "/login";
+    // 3️⃣ Enviar correo (solo si es un usuario nuevo)
+    if (!result.alreadyExists) {
+      const url = `${window.location.origin}/login`;
       await fetch(import.meta.env.VITE_SEND_EMAIL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -103,18 +122,26 @@ function Users() {
           url,
         }),
       });
-
-      form.resetFields();
-      setModalVisible(false);
-      fetchUsers();
-      message.success("Usuario creado con éxito");
-    } catch (err) {
-      console.error(err);
-      message.error("Error al crear usuario");
-    } finally {
-      setCreating(false);
     }
-  };
+
+    // 4️⃣ Limpieza de formulario y feedback
+    form.resetFields();
+    setModalVisible(false);
+    fetchUsers();
+
+    message.success(
+      result.alreadyExists
+        ? "El usuario ya existía, se reutilizó el registro"
+        : "Usuario creado con éxito"
+    );
+  } catch (err) {
+    console.error(err);
+    message.error("Error al crear usuario");
+  } finally {
+    setCreating(false);
+  }
+};
+
 
   // 🔹 Columnas para vista escritorio
   const columns = [

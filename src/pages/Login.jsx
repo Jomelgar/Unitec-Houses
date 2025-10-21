@@ -21,6 +21,9 @@ function Login() {
       return;
     }
 
+    const { data: dataU } = await supabase.from("users").select().eq("id", data.user.id).single();
+    if(!dataU) {await supabase.auth.signOut(); setLoading(false);return;}
+
     const id = data.user.id;
     Cookies.set("user", id,{expires: 1/24});
 

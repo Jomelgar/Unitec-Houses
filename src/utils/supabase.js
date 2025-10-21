@@ -12,13 +12,27 @@ const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE,{
   db: { schema: 'unitechouses' },
 });
 
-export async function createUser(email,password){
-  return await supabaseAdmin.auth.admin.createUser({
+export async function createUser(email, password) {
+  const { data: list, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+
+  if (listError) throw listError;
+
+  const existingUser = list.users.find((u) => u.email === email);
+
+  if (existingUser) {
+    const {error} = supabaseAdmin.auth.admin.updateUserById(existingUser.id, {password: password});
+    return { id: existingUser.id, alreadyExists: true };
+  }
+
+  const { data, error } = await supabaseAdmin.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
   });
+  if (error) throw error;
+  return { id: data.user.id, alreadyExists: false };
 }
+
 
 export async function updateUserPassword(userId, newPassword) {
   try {
