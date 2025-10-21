@@ -72,18 +72,18 @@ function Houses() {
       key: "actions",
       render: (_, record) => (
         <div className="flex gap-2">
+        <Button
+            icon={<ReloadOutlined />}
+            onClick={() => handleReset(record.id)}
+        >
+            Reiniciar
+        </Button>
           <Button
             onClick={() => handleDelete(record?.id)}
             icon={<DeleteOutlined />}
             className="!font-[Poppins] hover:scale-105 text-white bg-red-400 hover:!bg-red-600 hover:!text-white hover:!border-red-800"
           >
             Eliminar
-          </Button>
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={() => handleReset(house.id)}
-          >
-            Reiniciar
           </Button>
         </div>
       ),
