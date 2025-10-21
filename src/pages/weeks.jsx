@@ -38,6 +38,7 @@ function Weeks() {
 
 
   const fetchSections = async () => {
+    setLoading(true);
     const { data, error } = await supabase
       .from("sections")
       .select("id, classes(name), code")
@@ -50,6 +51,7 @@ function Weeks() {
     }
 
     setSections(data || []);
+    setLoading(false);
     if (data && data.length > 0) {
       setSelectedSection(data[0].id);
     }
@@ -58,17 +60,18 @@ function Weeks() {
   // 🔹 Cargar semanas de la sección seleccionada
   const fetchWeeks = async () => {
     if (!selectedSection) return;
-
+    setLoading(true);
     const { data, error } = await supabase
       .from("weeks")
       .select("*")
       .eq("id_section", selectedSection);
 
     if (error) {
+      setLoading(false);
       console.error("Error al obtener semanas:", error);
       return;
     }
-
+    setLoading(false);
     setWeeks(data || []);
   };
 
@@ -119,6 +122,7 @@ function Weeks() {
         {/* 🔸 Selector de sección */}
         <Select
           value={selectedSection}
+          loading={loading}
           placeholder="Selecciona una sección"
           className="font-[Poppins]"
           onChange={(value) => setSelectedSection(value)}
@@ -134,11 +138,12 @@ function Weeks() {
         <Collapse
           accordion
           activeKey={selected}
+          loading={loading}
           onChange={(key) => setSelected(key[0])}
           expandIconPosition="end"
           className="rounded-2xl shadow-lg bg-white/70 backdrop-blur-sm"
         >
-          {weeks.length > 0 ? (
+          {weeks.length > 0 && !loading? (
             weeks.map((semana) => (
               <Panel
                 key={semana.id}
