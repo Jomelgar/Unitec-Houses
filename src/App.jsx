@@ -13,11 +13,11 @@ import { LoadingOutlined } from "@ant-design/icons";
 import Classes from "./pages/classes";
 import supabase from "./utils/supabase";
 import Register from "./pages/Register";
-import Ranking from "./pages/ranking";
+import Ranking from "./pages/Ranking";
 import Header from "./components/header";
 import NotFound from "./pages/NotFound";
 import Weeks from "./pages/weeks";
-import Login from "./pages/login";
+import Login from "./pages/Login";
 import Houses from "./pages/houses";
 import Evaluation from "./pages/evaluation";
 
