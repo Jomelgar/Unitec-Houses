@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import Particles from "../components/particles-floating";
 import { Button, Card, Table, Typography, Row, Col, message } from "antd";
-import { DeleteOutlined, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
 import supabase from "../utils/supabase";
+import EditPoints from "../modals/EditPoints";
 import AddHouse from "../modals/AddHouse";
 
 const { Title, Text } = Typography;
 
 function Houses() {
   const [addHouse, setAddHouse] = useState(false);
+  const [editHouse, setEditHouse] = useState(null);
   const [houses, setHouses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -84,6 +86,11 @@ function Houses() {
             className="!font-[Poppins] hover:scale-105 text-white bg-red-400 hover:!bg-red-600 hover:!text-white hover:!border-red-800"
           >
             Eliminar
+          </Button>
+          <Button icon={<EditOutlined/>}
+            onClick={() => setEditHouse(record?.id)}
+          >
+            Editar Puntos  
           </Button>
         </div>
       ),
@@ -170,6 +177,7 @@ function Houses() {
       </Card>
 
       <AddHouse open={addHouse} close={() => setAddHouse(false)} refresh={fetchHouses} />
+      <EditPoints open={editHouse} onClose={() => setEditHouse(null)} fetchHouses={fetchHouses}/>
     </div>
   );
 }

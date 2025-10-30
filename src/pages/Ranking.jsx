@@ -84,7 +84,7 @@ function Ranking() {
                   <img
                     src={house.photoURL}
                     alt={house.name}
-                    className="w-16 h-16 md:w-24 md:h-24 rounded-full object-cover border-2 border-[#00000088]"
+                    className="w-16 h-16 md:w-24 md:h-24 bg-white rounded-full object-cover border-2 border-[#00000088]"
                   />
                 </div>
 
