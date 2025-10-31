@@ -79,12 +79,12 @@ function Ranking() {
                 transition={{ delay: 0.2 * index, type: "spring" }}
               >
                 <div
-                  className={`w-20 h-20 md:w-28 md:h-28 rounded-full border-4 mb-3 bg-[#0b1222] flex items-center justify-center ${colors[index]}`}
+                  className={`w-12 h-10 md:w-28 md:h-28 rounded-full border-4 mb-3 bg-[#0b1222] flex items-center justify-center ${colors[index]}`}
                 >
                   <img
                     src={house.photoURL}
                     alt={house.name}
-                    className="w-16 h-16 md:w-24 md:h-24 bg-white rounded-full object-cover border-2 border-[#00000088]"
+                    className="w-12 h-10 md:w-24 md:h-24 bg-white rounded-full object-cover border-2 border-[#00000088]"
                   />
                 </div>
 
