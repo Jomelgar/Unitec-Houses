@@ -18,8 +18,7 @@ function Ranking() {
       .select("name, photoURL, points")
       .order("points", { ascending: false });
 
-    if (error) console.error(error);
-    else setHouses(data || []);
+    setHouses(data || []);
     setLoading(false);
   };
 
