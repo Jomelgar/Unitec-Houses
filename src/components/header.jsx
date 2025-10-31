@@ -123,7 +123,7 @@ function AppHeader() {
         className="flex items-center text-white text-xl tracking-wide select-none z-10 font-[Poppins]"
       >
         <img alt="Logo" src="/UT2.png" className="w-8 h-8 mr-3" />
-        <span className="font-bold w-auto text-white !font-[Poppins]">MATH HOUSES</span>
+        <span className="font-bold w-auto text-white !font-[Poppins]">Casas Academícas</span>
       </div>
 
       <div className="hidden md:flex w-full ">

@@ -45,7 +45,7 @@ function Ranking() {
             level={1}
             className="!font-[SF Pro Display] !text-2xl md:!text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-800 via-blue-600 to-blue-400 tracking-tight drop-shadow-[0_0_20px_rgba(173,216,230,0.3)]"
           >
-            MATH HOUSES
+            Casas Academícas
           </Title>
           <Text className="block mt-3 text-blue-900/80 text-sm md:text-lg italic tracking-wide">
             Honor, Gloria y Fuego — donde cada casa forja su legado.
