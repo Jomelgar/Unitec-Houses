@@ -36,7 +36,7 @@ function Evaluation() {
       const { data: oldData, error: oldError } = await supabase
         .from("califications")
         .select("id, points, approved, id_house(id, photoURL, name), id_week(id,week, id_section(code, id_user(email)))")
-        .neq("approved", "En Proceso  ").neq("approved","No evaluado");
+        .neq("approved", "En Proceso").neq("approved","No evaluado");
 
       if (oldError) throw oldError;
       setOtherWeeks(oldData || []);
