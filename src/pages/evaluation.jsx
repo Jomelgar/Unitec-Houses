@@ -10,6 +10,7 @@ const { Title, Text } = Typography;
 function Evaluation() {
   const [weeks, setWeeks] = useState([]);
   const [otherWeeks, setOtherWeeks] = useState([]);
+  const [view,setView] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -33,9 +34,9 @@ function Evaluation() {
       setWeeks(data || []);
 
       const { data: oldData, error: oldError } = await supabase
-        .from("weeks")
-        .select("id, id_section(id, code, id_user(email)), week, status")
-        .neq("status", "En Proceso");
+        .from("califications")
+        .select("id, points, approved, id_house(id, photoURL, name), id_week(id,week, id_section(code, id_user(email)))")
+        .neq("approved", "En Proceso  ").neq("approved","No evaluado");
 
       if (oldError) throw oldError;
       setOtherWeeks(oldData || []);
@@ -51,8 +52,9 @@ function Evaluation() {
     fetchWeeks();
   }, []);
 
-  const handleView = (record) => {
+  const handleView = (record, onlyView = false) => {
     setSelectedWeek(record.id);
+    setView(onlyView);
   };
 
   const columns = [
@@ -110,36 +112,46 @@ function Evaluation() {
    const otherColumns = [
     {
       title: "Usuario",
-      dataIndex: ["id_section", "id_user", "email"],
+      dataIndex: ["id_week","id_section", "id_user", "email"],
       key: "user",
       align: "center",
     },
     {
       title: "Sección",
-      dataIndex: ["id_section", "code"],
+      dataIndex: ["id_week","id_section", "code"],
       key: "section",
       align: "center",
     },
     {
       title: "Semana",
-      dataIndex: "week",
+      dataIndex: ["id_week","week"],
       key: "week",
       align: "center",
       render: (week) => <Tag color="blue">Semana {week}</Tag>,
     },
     {
+      title: "Puntos Calificados",
+      key: "points",
+      dataIndex: "points"
+    },
+    {
+      title: "Casa",
+      key: "house",
+      dataIndex: ["id_house","name"]
+    },
+    {
       title: "Estado",
-      dataIndex: "status",
+      dataIndex: "approved",
       key: "status",
       align: "center",
-      render: (status) =>
-        status === "En Proceso" ? (
-          <Tag icon={<ClockCircleOutlined />} color="orange">
-            En Proceso
+      render: (_,record) =>
+        record.approved === "Aceptada" ? (
+          <Tag icon={<ClockCircleOutlined />} color="green">
+            Aceptada
           </Tag>
         ) : (
-          <Tag icon={<CheckCircleOutlined />} color="green">
-            Finalizado
+          <Tag icon={<CheckCircleOutlined />} color="red">
+            Rechazada
           </Tag>
         ),
     },
@@ -182,6 +194,36 @@ function Evaluation() {
     );
   };
 
+  const renderOtherCardList = (list) => {
+    if (list.length === 0) return <Empty description="No hay calificaciones disponibles" />;
+    return (
+      <div className="flex flex-col gap-4">
+        {list.map((week) => (
+          <Card
+            key={week.id}
+            className="!rounded-xl shadow-md border border-gray-200 hover:shadow-lg transition-all"
+          >
+            <div className="flex flex-col gap-1">
+              <Text><b>Usuario:</b> {week.id_week?.id_section?.id_user?.email || "—"}</Text>
+              <Text><b>Sección:</b> {week.id_week?.id_section?.code || "—"}</Text>
+              <Text><b>Semana:</b> {week.id_week?.week}</Text>
+              <Text><b>Puntos:</b> {week?.points}</Text>
+              <Text><b>Casa:</b> {week?.id_house?.name}</Text>
+              <Text><b>Estado:</b> 
+                <Tag
+                  className="self-start mt-1 ml-1"
+                  color={week.approved === "Rechazada" ? "red" : "green"}
+                >
+                  {week.approved}
+                </Tag>
+              </Text>
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="w-full min-h-screen bg-gradient-to-t from-blue-200 to-blue-100 py-10 flex flex-col items-center relative overflow-y-auto">
       <Particles />
@@ -215,7 +257,7 @@ function Evaluation() {
       </Card>
 
       {/* SECCIÓN: Finalizadas */}
-      <Card className="w-11/12 md:w-3/4 shadow-2xl rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
+      <Card className="w-11/12 md:w-3/4 shadow-2xl rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm overflow-x-auto">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
           <Title level={3} className="!m-0 text-center sm:text-left text-green-600">
             Semanas Evaluadas
@@ -231,8 +273,9 @@ function Evaluation() {
           </Button>
         </div>
 
-        {isMobile ? renderCardList(otherWeeks) : (
+        {isMobile ? renderOtherCardList(otherWeeks) : (
           <Table
+            className="overflow-x-auto bg-white"
             columns={otherColumns}
             dataSource={otherWeeks.map((w) => ({ ...w, key: w.id }))}
             rowKey="id"
@@ -248,6 +291,7 @@ function Evaluation() {
         weekId={selectedWeek}
         onClose={() => setSelectedWeek(null)}
         refreshList={fetchWeeks}
+        onlyView={view}
       />
     </div>
   );

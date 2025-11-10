@@ -5,7 +5,7 @@ import supabase from "../utils/supabase";
 
 const { Text, Title } = Typography;
 
-function Calification({ weekId, open, onClose, refreshList }) {
+function Calification({ weekId, open, onClose, refreshList, onlyView}) {
   const [weekData, setWeekData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);

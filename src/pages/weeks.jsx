@@ -147,7 +147,7 @@ function Weeks() {
             weeks.map((semana) => (
               <Panel
                 key={semana.id}
-                disabled={semana.status !== "Rechazada"}
+                disabled={semana.status !== "No evaluado" && semana.status !== "Rechazada"}
                 header={
                   <motion.div
                     whileHover={{ scale: 1.02 }}
