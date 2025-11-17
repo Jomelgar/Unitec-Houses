@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -9,7 +9,6 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { image } from "framer-motion/client";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -18,9 +17,15 @@ function HorizontalBarChart({ labels, images, datapoints, title }) {
   const [loadedImages, setLoadedImages] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
-  // Pre-cargar imágenes
+  const chartRef = useRef(null);
+
+  // Preload imágenes
   useEffect(() => {
-    if (!images || images.length === 0) return;
+    if (!images || images.length === 0) {
+      setReady(true);
+      setLoadedImages([]);
+      return;
+    }
 
     const imgs = [];
     let loadedCount = 0;
@@ -28,17 +33,27 @@ function HorizontalBarChart({ labels, images, datapoints, title }) {
     images.forEach((src, i) => {
       const img = new Image();
       img.src = src;
+
       img.onload = () => {
         loadedCount++;
-        if (loadedCount === images.length) setReady(true);
+        if (loadedCount === images.length) {
+          setLoadedImages(imgs);
+          setReady(true);
+        }
       };
+
       imgs[i] = img;
     });
-
-    setLoadedImages(imgs);
   }, [images]);
 
-  // Detectar cambios de tamaño de ventana
+  // ⛔ FORZAR RE-RENDER DEL GRÁFICO CUANDO LAS IMÁGENES YA ESTÁN LISTAS
+  useEffect(() => {
+    if (ready && chartRef.current) {
+      chartRef.current.update();
+    }
+  }, [ready, loadedImages]);
+
+  // Resize detection
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
@@ -57,69 +72,59 @@ function HorizontalBarChart({ labels, images, datapoints, title }) {
         borderColor: "rgba(37, 99, 235, 1)",
         borderWidth: 1,
         borderRadius: 8,
-        barPercentage: windowWidth < 768 ? 1 : 0.5,
-        maxBarThickness: windowWidth < 768 ? 30 : 40,
       },
     ],
   };
 
-const imagePlugin = {
-  id: "imagePlugin",
-  afterDatasetsDraw: (chart) => {
-    const { ctx } = chart;
-    chart.getDatasetMeta(0).data.forEach((bar, index) => {
-      const img = loadedImages[index];
-      if (!img) return;
+  // Plugin que dibuja imágenes
+  const imagePlugin = {
+    id: "imagePlugin",
+    afterDraw: (chart) => {
+      if (!loadedImages.length) return;
 
-      // Si el valor del datapoint es 0, no dibujamos la imagen
-      if (datapoints[index] === 0) return;
+      const { ctx } = chart;
 
-      const imgSize = windowWidth < 768 ? 25 : 40;
-      const x = bar.x - imgSize;
-      const y = bar.y - imgSize / 2;
+      chart.getDatasetMeta(0).data.forEach((bar, index) => {
+        const img = loadedImages[index];
+        if (!img) return;
+        if (datapoints[index] === 0) return;
 
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(x + imgSize / 2, y + imgSize / 2, imgSize / 2, 0, Math.PI * 2);
-      ctx.clip();
-      ctx.drawImage(img, x, y, imgSize, imgSize);
-      ctx.restore();
-    });
-  },
-};
+        const imgSize = windowWidth < 768 ? 25 : 40;
+        const x = bar.x - imgSize - 10;
+        const y = bar.y - imgSize / 2;
 
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x + imgSize / 2, y + imgSize / 2, imgSize / 2, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(img, x, y, imgSize, imgSize);
+        ctx.restore();
+      });
+    },
+  };
 
   const options = {
     indexAxis: "y",
-    responsive: true,
     maintainAspectRatio: false,
-    animation: { duration: 1500, easing: "easeOutBounce" },
+    responsive: true,
+    animation: { duration: 800 },
     plugins: {
-      legend: { position: windowWidth < 768 ? "bottom" : "top" },
-      title: {
-        display: true,
-        text: title || "Puntos por asignatura",
-        font: { size: windowWidth < 768 ? 14 : 20 },
-      },
-      tooltip: { enabled: true },
-    },
-    scales: {
-      x: {
-        beginAtZero: true,
-        ticks: { stepSize: 10, font: { size: windowWidth < 768 ? 10 : 14 } },
-      },
-      y: {
-        ticks: { font: { size: windowWidth < 768 ? 10 : 14 } },
-      },
+      legend: { display: false },
+      title: { display: true, text: title },
     },
   };
 
   return (
     <div
-      className="w-full max-w-full mx-auto p-2"
-      style={{ height: `${labels.length * (windowWidth < 768 ? 20*images.length : 20*images.length)}px` }}
+      className="w-full mx-auto p-2"
+      style={{ height: `${labels.length * 70}px` }}
     >
-      <Bar data={data} options={options} plugins={[imagePlugin]} />
+      <Bar
+        ref={chartRef}
+        data={data}
+        options={options}
+        plugins={[imagePlugin]}
+      />
     </div>
   );
 }
