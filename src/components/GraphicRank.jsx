@@ -19,13 +19,9 @@ function HorizontalBarChart({ labels, images, datapoints, title }) {
 
   const chartRef = useRef(null);
 
-  // Preload imágenes
+  // Pre-cargar imágenes
   useEffect(() => {
-    if (!images || images.length === 0) {
-      setReady(true);
-      setLoadedImages([]);
-      return;
-    }
+    if (!images || images.length === 0) return;
 
     const imgs = [];
     let loadedCount = 0;
@@ -33,17 +29,14 @@ function HorizontalBarChart({ labels, images, datapoints, title }) {
     images.forEach((src, i) => {
       const img = new Image();
       img.src = src;
-
       img.onload = () => {
         loadedCount++;
-        if (loadedCount === images.length) {
-          setLoadedImages(imgs);
-          setReady(true);
-        }
+        if (loadedCount === images.length) setReady(true);
       };
-
       imgs[i] = img;
     });
+
+    setLoadedImages(imgs);
   }, [images]);
 
   // ⛔ FORZAR RE-RENDER DEL GRÁFICO CUANDO LAS IMÁGENES YA ESTÁN LISTAS
@@ -90,7 +83,7 @@ function HorizontalBarChart({ labels, images, datapoints, title }) {
         if (datapoints[index] === 0) return;
 
         const imgSize = windowWidth < 768 ? 25 : 40;
-        const x = bar.x - imgSize - 10;
+        const x = bar.x - imgSize;
         const y = bar.y - imgSize / 2;
 
         ctx.save();
